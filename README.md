@@ -956,6 +956,7 @@ graph.ready(["chart.builder", "util.base"], function (builder, _) {
     });
 });
 ```
+---
 
 `데모 코드`
 ```js
@@ -1002,6 +1003,8 @@ graph.ready(["chart.builder", "util.base"], function (builder, _) {
     });
 ```
 
+
+`데모코드 - 이미지`
 <img width="1322" alt="데모코드" src="https://github.com/CaMaGuee/Charting-JUI/assets/89383380/b09fec2d-3baf-4dc7-bd86-7a83d41cfb3d">
 
 
