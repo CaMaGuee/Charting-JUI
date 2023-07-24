@@ -258,3 +258,750 @@ grunt css
 grunt test
 표  grunt 명령어
 ```
+
+## 마) 차트 모듈 개선 계획 - 오픈소스 사용 매뉴얼
+
+### (가) Table of Contents
+
+  1. graph
+    1) graph.ready(callback)
+    2) graph.render()
+    3) graph.reisze(callback, ms)
+    4) graph.update(data)
+      참조 링크 : https://github.com/juijs/jui-chart/blob/master/dist/jui-chart.js
+
+  2. chart
+    1) builder
+      (1) height
+    　(2) padding
+      (3) axis
+      (4) brush
+        ○ canvas
+      (5) widget
+        ○ title
+  　    ○ legend
+        ○ zoom
+      참조 링크 : http://api.jui.io/v2/
+     
+---
+
+### (나) Detailed Description of Contents
+
+1. graph
+
+  1.1 소스 코드 : graph.ready(callback)
+ 
+  ○ 차트 초기화가 완료되는 시점에 실행되는 콜백 함수를 설정하는 메서드
+
+`graph.ready(callback) 구현부`
+```js
+ready: function ready() {
+    var args = [],
+        callback = arguments.length == 2 ? arguments[1] : arguments[0],
+        depends = arguments.length == 2 ? arguments[0] : null;
+        if (  !utility.typeCheck(["array", "null"], depends) || 
+             !utility.typeCheck("function", callback)) {
+           throw new Error("JUI_CRITICAL_ERR: Invalid parameter type of the function");
+    }
+    utility.ready(function () {
+        if (depends) {
+            args = getDepends(depends);
+        }
+        callback.apply(null, args);
+    });
+}
+```
+
+`graph.ready(callback) 예제 코드`
+```js
+graph.ready(["chart.builder", "util.base"], function (builder, _) {
+    c = builder("#chart", {
+     height: 300,
+     padding: {
+         right: 120
+     },
+     axis: [
+         {
+             x: {
+              type: "date",
+              domain: [new Date("2023/06/01 00:00:00"), new Date("2023/06/01 23:59:00")],
+                       // X축의 범위를 설정합니다. [시작 날자] - [끝 날자]
+              interval: 1000 * 60 * 60 *3, 
+                       // 6시간 간격으로 눈금 표시
+              format: "HH:mm", 
+                       // 눈금의 레이블을 시간-분 형식으로 표시하도록 설정합니다.
+                 key: "date",
+                 line: true
+             },
+             y: {
+                 type: "range",
+                 domain: [0, 30], // Y축의 범위를 설정합니다.
+                 step: 2,
+                 line: true,
+                 orient: "left"
+             },
+             data: data
+         }
+     ]
+    });
+});
+```
+
+---
+
+  1.2 소스 코드 : graph.render()
+  
+  ○ Method for redrawing charts
+
+`graph.render()(구현부)`
+```js
+/**
+  * @method render
+  * @param isAll
+  */
+     this.render = function (isAll) {
+     this.clear();
+
+     if (isFirst === false || isAll === true) {
+           appendAll(root);
+     } else {
+           appendAll(main);
+           }
+
+     isFirst = true;
+     };
+```
+
+`graph.render() 예제 코드`
+```js
+<button onclick="updateData()">Update Data</button>
+    <script>
+        var data = [
+            { date: new Date("2015/01/01 00:00:00"), temperature: 35 },
+            { date: new Date("2015/01/01 06:00:00"), temperature: 30 },
+/* ------ 생략 ------ */
+            { date: new Date("2015/01/02 00:00:00"), temperature: 20 }
+        ];
+        graph.ready(["chart.builder", "util.base"], function (builder, _) {
+            c = builder("#chart", {
+                height: 300,
+                padding: {
+                    right: 120
+                },
+        axis: [
+            {
+                x: {
+                 type: "date",
+                 domain: [new Date("2023/06/01 00:00:00"), new Date("2023/06/01 23:59:00")],
+                 // X축의 범위를 설정합니다.
+                 interval: 1000 * 60 * 60 *3, // 6시간 간격으로 눈금 표시
+                 format: "HH:mm", // 눈금의 레이블을 시간-분 형식으로 표시하도록 설정합니다.
+                 key: "date",
+                 line: true
+                },
+                y: {
+                 type: "range",
+                 domain: [0, 30], // Y축의 범위를 설정합니다.
+                 step: 2,
+                 line: true,
+                 orient: "left"
+                },
+                data: data
+            }
+        ]
+            });
+        });
+        function updateData() {
+            // 데이터를 업데이트함
+            data = [
+                { date: new Date("2015/01/01 00:00:00"), temperature: 45 },
+                { date: new Date("2015/01/01 06:00:00"), temperature: 35 },
+/* ------ 생략 ------ */
+                { date: new Date("2015/01/02 00:00:00"), temperature: 32 }
+            ];
+            c.axis(0).update(data);
+            c.render();
+        }
+```
+
+---
+
+  1.3 소스 코드 : graph.resize(callback, ms)
+ 
+  ○ 윈도우의 크기가 변경됐을 때 차트의 크기를 변경하고 차트를 다시 
+   그리는 메서드
+
+`graph.resize(callback, ms) 구현부`
+```js
+resize: function resize(callback, ms) {
+        var after_resize = function () {
+            var timer = 0;
+
+            return function () {
+                clearTimeout(timer);
+                timer = setTimeout(callback, ms);
+            };
+        }();
+
+        if (window.addEventListener) {
+            window.addEventListener("resize", after_resize);
+        } else if (object.attachEvent) {
+            window.attachEvent("onresize", after_resize);
+        } else {
+            window["onresize"] = after_resize;
+        }
+    }
+```
+
+`graph.resize(callback, ms) 예제 코드`
+```js
+graph.ready(["chart.builder", "util.base"], function (builder, _) {
+            c = builder("#chart", {
+                    height: 300,
+                padding: {
+                    right: 120
+                },
+        axis: [
+            {
+                x: {
+                 type: "date",
+                 domain: [new Date("2023/06/01 00:00:00"), new Date("2023/06/01 23:59:00")],
+                          // X축의 범위를 설정합니다.
+                 interval: 1000 * 60 * 60 *3, 
+                          // 6시간 간격으로 눈금 표시
+                 format: "HH:mm", 
+                          // 눈금의 레이블을 시간-분 형식으로 표시하도록 설정합니다.
+                 key: "date",
+                 line: true
+                },
+                y: {
+                 type: "range",
+                 domain: [0, 30], // Y축의 범위를 설정합니다.
+                 step: 2,
+                 line: true,
+                 orient: "left"
+                },
+                data: data
+            }
+        ]
+            });
+            });
+        });window.addEventListener("resize", function () {
+            c.resize();
+        });
+```
+
+---
+
+  1.4 소스 코드 : graph.update(data)
+ 
+  ○ data를 업데이트하는 메서드 
+
+`graph.update(data) 구현부`
+```js
+this.update = function (data) {
+            this.origin = _.typeCheck("array", data) ? data : [data];
+            this.page = 1;
+            this.start = 0;
+            this.end = 0;
+
+            this.screen(1);
+        };
+```
+
+`graph.update(data) 예제 코드`
+```js
+<div id="chart"></div>
+    <button onclick="updateData()">Update Data</button>
+    <script>
+        var data = [
+            { date: new Date("2015/01/01 00:00:00"), temperature: 35 },
+            { date: new Date("2015/01/01 06:00:00"), temperature: 30 },
+/* ------ 생략 ------ */
+            { date: new Date("2015/01/02 00:00:00"), temperature: 20 }
+        ];
+        graph.ready(["chart.builder", "util.base"], function (builder, _) {
+            c = builder("#chart", {
+                height: 300,
+                padding: {
+                    right: 120
+                },
+                axis: [
+                    {
+                        x: {
+                            type: "date",
+                            domain: [new Date("2015/01/01"), new Date("2015/01/02")],
+                            interval: 1000 * 60 * 60 * 6, // 6 hours
+                            format: "MM/dd HH:mm",
+                            key: "date",
+                            line: true
+                        },
+                        y: {
+                            type: "range",
+                            domain: [10, 40],
+                            step: 2,
+                            line: true,
+                            orient: "left"
+                        },
+                        data: data
+                    }
+                ]
+            });
+        });
+        function updateData() { //"2015/01/01" ~ "2015/01/02" 사이의 날짜 데이터를 업데이트하는 코드
+            data = [];
+            var startDate = new Date("2015/01/01");
+            var endDate = new Date("2015/01/02");
+            while(startDate < endDate) {
+            data.push({ date: new Date(startDate),
+            temperature:Math.round(Math.random() * 20 + 10) });
+                startDate.setHours(startDate.getHours() + 3);
+            }
+            c.axis(0).update(data);
+            c.render();
+        }
+    </script>
+```
+
+---
+
+ 2. chart
+ 
+  2.1 소스 코드 : builder
+ 
+  ○ 생성할 차트를 정의하는 코드
+
+`builder 예제 코드`
+```js
+graph.ready(["chart.builder", "util.base"], function (builder, _) {
+    c = builder("#chart", {
+
+       });
+});
+```
+
+ ○ 하위에 있는 내용을 포함해 차트를 정의한다.
+
+---
+
+  2.1.1 소스 코드 : builder - height
+ 
+  ○ 차트의 높이를 정의하는 코드 (px)
+
+`builder - height 예제 코드`
+```js
+graph.ready(["chart.builder", "util.base"], function (builder, _) {
+    c = builder("#chart", {
+        height: 300
+       });
+});
+```
+---
+
+  2.1.2 소스 코드 : builder - padding
+ 
+  ○ 차트 주변 여백을 정의하는 코드 (px)
+
+`builder - padding 예제 코드`
+```js
+graph.ready(["chart.builder", "util.base"], function (builder, _) {
+    c = builder("#chart", {
+       padding : {
+        right : 100
+       }
+   });
+});
+```
+
+---
+
+  2.1.3 소스 코드 : builder - axis
+  
+  ○ 차트의 x축과 y축을 설정하는 코드
+
+`builder - axis 예제 코드`
+```js
+graph.ready(["chart.builder", "util.base"], function (builder, _) {
+    c = builder("#chart", {
+       height: 300,
+        padding: {
+            right: 120
+        },
+       axis : [
+            {
+                  x : {
+                      type : "date",
+                      domain : [ 0, 100 ],
+                      interval : 1000 * 60 * 60 * 6, // 6시간
+                      format : "MM/dd HH:mm",
+                      line : true
+                  },
+                  y : {
+                      type : "range",
+                      domain : [ 0, 100 ],
+                      step : 5,
+                      line : true,
+                      orient : "left"
+                  },
+                  data: data
+              }
+          ]
+   });
+});
+```
+
+ ○ type	: 축의 유형을 정의
+
+ ○ domain 	: 축의 범위를 정의
+ 
+ ○ interval 	: 축에 대한 눈금 간격을 정의
+ 
+ ○ format 	: 축의 눈금 값의 포맷을 정의
+ 
+ ○ line 	: 눈금의 선의 유무를 정의
+ 
+ ○ step 	: 축 간격의 개수를 정의
+ 
+ ○ orient 	: “left”(기본값) / “right” 축의 위치를 정의
+ 
+ ---
+ 
+  2.1.4.1 소스 코드 : canvas
+  ○ 차트의 구성 요소를 설정하는 코드
+
+`canvas 예제 코드`
+```js
+var data = [
+         { date: new Date("2015/01/01 00:00:00"), targetName: 40 },
+         { date: new Date("2015/01/01 06:00:00"), targetName: 35 },
+/* ------ 생략 ------ */
+         { date: new Date("2015/01/02 00:00:00"), targetName: 20 }
+];
+graph.ready(["chart.builder", "util.base"], function (builder, _) {
+    c = builder("#chart", {
+        height: 300,
+        padding: {
+            right: 120
+        },
+        axis : [
+            {
+                  x : {
+                      type : "date",
+                      domain : [ 0, 100 ],
+                      interval : 1000 * 60 * 60 * 6, // 6시간
+                      format : "MM/dd HH:mm",
+                      line : true
+                  },
+                  y : {
+                      type : "range",
+                      domain : [ 0, 100 ],
+                      step : 5,
+                      line : true,
+                      orient : "left"
+                  },
+                  data: data
+              }
+          ]
+     brush : [
+     { type : "line", target : "targetName", axis : 0, colors: [ "#90ed7d" ], symbol : "curve"       } 
+     ]
+  });
+});
+```
+
+ ○ type : 차트의 형태를 설정
+ 
+ ○ target : 시각화 도구가 표시할 대상 데이터의 이름
+ 
+ ○ axis : 그리기에 사용될 좌표 축 설정 인덱스
+ 
+ ○ colors : 데이터가 그려지는 선의 색상
+ 
+ ○ symbol : “normal” / “curve” / “step” 선의 모양을 설정
+ 
+ ○ 두 개 이상의 값을 차트에 그려야 할 경우 값의 개수에 맞추어 해당 코드 추가
+
+`두 개 이상의 값을 그리는 canvas 예제 코드`
+```js
+var data = [
+         { date: new Date("2015/01/01 00:00:00"), target1: 40 , target2 : 32 , target3 : 29},
+         { date: new Date("2015/01/01 06:00:00"), target1: 35 , target2 : 29 , target3 : 27},
+/* ------ 생략 ------ */
+         { date: new Date("2015/01/02 00:00:00"), target1: 20 , target2 : 24 , target3 : 17}
+];
+graph.ready(["chart.builder", "util.base"], function (builder, _) {
+    c = builder("#chart", {
+        height: 300,
+        padding: {
+            right: 120
+        },
+        axis : [
+            {
+                  x : {
+                      type : "date",
+                      domain : [ 0, 100 ],
+                      interval : 1000 * 60 * 60 * 6, // 6시간
+                      format : "MM/dd HH:mm",
+                      line : true
+                  },
+                  y : {
+                      type : "range",
+                      domain : [ 0, 100 ],
+                      step : 5,
+                      line : true,
+                      orient : "left"
+                  },
+                  data: data
+              }
+          ]
+     brush : [
+      { type : "line", target : "target1", axis : 0, colors: [ "#90ed7d" ], symbol : "curve" } ,
+      { type : "line", target : "target2", axis : 0, colors: [ "#90ed7d" ], symbol : "curve" } ,
+      { type : "line", target : "target3", axis : 0, colors: [ "#90ed7d" ], symbol : "curve" } 
+     ]
+    });
+});
+```
+---
+
+  2.1.5 소스 코드 : title
+  ○ 차트의 제목을 정하는 코드
+
+`title 예제 코드`
+```js
+var data = [
+         { date: new Date("2015/01/01 00:00:00"), targetName: 40 },
+         { date: new Date("2015/01/01 06:00:00"), targetName: 35 },
+/* ------ 생략 ------ */
+         { date: new Date("2015/01/02 00:00:00"), targetName: 20 }
+];
+graph.ready(["chart.builder", "util.base"], function (builder, _) {
+    c = builder("#chart", {
+        height: 300,
+        padding: {
+            right: 120
+        },
+        axis : [
+            {
+                  x : {
+                      type : "date",
+                      domain : [ 0, 100 ],
+                      interval : 1000 * 60 * 60 * 6, // 6시간
+                      format : "MM/dd HH:mm",
+                      line : true
+                  },
+                  y : {
+                      type : "range",
+                      domain : [ 0, 100 ],
+                      step : 5,
+                      line : true,
+                      orient : "left"
+                  },
+                  data: data
+              }
+          ]
+      brush : [
+     { type : "line", target : "targetName", axis : 0, colors: [ "#90ed7d" ], symbol : "curve"} 
+     ]
+     widget : [ { type : "title", text : "Test title" } ]
+    });
+});
+```
+
+ ○ text : 제목을 설정
+ 
+---
+
+  2.4.2 소스 코드 : legend
+
+  ○ 차트의 범례를 표시하는 코드
+
+`legend 예제 코드`
+```js
+var data = [
+         { date: new Date("2015/01/01 00:00:00"), targetName: 40 },
+         { date: new Date("2015/01/01 06:00:00"), targetName: 35 },
+/* ------ 생략 ------ */
+         { date: new Date("2015/01/02 00:00:00"), targetName: 20 }
+];
+graph.ready(["chart.builder", "util.base"], function (builder, _) {
+    c = builder("#chart", {
+        height: 300,
+        padding: {
+            right: 120
+        },
+        axis : [
+            {
+                  x : {
+                      type : "date",
+                      domain : [ 0, 100 ],
+                      interval : 1000 * 60 * 60 * 6, // 6시간
+                      format : "MM/dd HH:mm",
+                      line : true
+                  },
+                  y : {
+                      type : "range",
+                      domain : [ 0, 100 ],
+                      step : 5,
+                      line : true,
+                      orient : "left"
+                  },
+                  data: data
+              }
+          ]
+     brush : [
+     { type : "line", target : "targetName", axis : 0, colors: [ "#90ed7d" ], symbol : "curve"} 
+     ]
+     widget : [ { type : "legend", brush : [ 0 ], align : "start", filter : true } ]
+    });
+});
+```
+
+ ○ brush : widget이 사용되는 brush 인덱스를 지정
+
+ ○ align : “start”/ “center”/ “end” 위치를 지정
+ 
+ ○ filter : brush로 선택한 label을 표시할 것인지 설정
+ 
+ ○ 두 개 이상의 값을 표시하기 위해선 값의 개수에 맞추어 해당 코드를
+  작성해야 한다.
+
+`두 개 이상의 값을 표시하는 legend 예제 코드`
+```js
+var data = [
+         { date: new Date("2015/01/01 00:00:00"), target1: 40 , target2 : 32 },
+         { date: new Date("2015/01/01 06:00:00"), target1: 35 , target2 : 29 },
+/* ------ 생략 ------ */
+         { date: new Date("2015/01/02 00:00:00"), target1: 20 , target2 : 24 }
+];
+graph.ready(["chart.builder", "util.base"], function (builder, _) {
+    c = builder("#chart", {
+        height: 300,
+        padding: {
+            right: 120
+        },
+        axis : [
+            {
+                  x : {
+                      type : "date",
+                      domain : [ 0, 100 ],
+                      interval : 1000 * 60 * 60 * 6, // 6시간
+                      format : "MM/dd HH:mm",
+                      line : true
+                  },
+                  y : {
+                      type : "range",
+                      domain : [ 0, 100 ],
+                      step : 5,
+                      line : true,
+                      orient : "left"
+                  },
+                  data: data
+              }
+          ]
+     brush : [
+     { type : "line", target : "target1", axis : 0, colors: ["#90ed7d"], symbol : "curve"} 
+     { type : "line", target : "target2", axis : 0, colors: ["#999999"], symbol : "curve"}
+     ]
+     widget : [ 
+          { type : "legend", brush : [ 0 ], align : "start", filter : true } ,
+          { type : "legend", brush : [ 1 ], align : "center", filter : true }
+     ]
+    });
+});
+```
+---
+
+2.4.3 소스 코드 : zoom
+
+  ○ 차트의 일부분을 확대하는 기능을 넣는 코드
+
+`zoom 예제 코드`
+```js
+var data = [
+         { date: new Date("2015/01/01 00:00:00"), targetName: 40 },
+         { date: new Date("2015/01/01 06:00:00"), targetName: 35 },
+/* ------ 생략 ------ */
+         { date: new Date("2015/01/02 00:00:00"), targetName: 20 }
+];
+graph.ready(["chart.builder", "util.base"], function (builder, _) {
+    c = builder("#chart", {
+        height: 300,
+        padding: {
+            right: 120
+        },
+        axis : [
+            {
+                  x : {
+                      type : "date",
+                      domain : [ 0, 100 ],
+                      interval : 1000 * 60 * 60 * 6, // 6시간
+                      format : "MM/dd HH:mm",
+                      line : true
+                  },
+                  y : {
+                      type : "range",
+                      domain : [ 0, 100 ],
+                      step : 5,
+                      line : true,
+                      orient : "left"
+                  },
+                  data: data
+              }
+          ]
+      brush : [
+     { type : "line", target : "targetName", axis : 0, colors: [ "#90ed7d" ], symbol : "curve"} 
+     ]
+     widget : [ { type : "zoom" } ]
+    });
+});
+```
+
+`데모 코드`
+```js
+graph.ready(["chart.builder", "util.base"], function (builder, _) {
+    c = builder("#chart", {
+        height: 300,
+        padding: {
+            right: 120
+        },
+        axis: [
+            {
+                x: {
+                    type: "date",
+                    domain: [new Date("2023/06/01 00:00:00"), new Date("2023/06/01 23:59:00")],
+                    interval: 1000 * 60 * 60,
+                    format: "HH:mm",
+                    key: "date",
+                    line: true
+                },
+                y: {
+                    type: "range",
+                    domain: [0, 30],
+                    step: 2,
+                    line: true,
+                    orient: "left"
+                },
+                data: data
+            }
+        ],
+        brush: [
+            { type: "line", target: "temperature1", axis: 0, colors: ["#90ed7d"], symbol: "curve" },
+            { type: "line", target: "temperature2", axis: 0, colors: ["#999999"], symbol: "curve" }
+        ],
+        widget: [
+            { type: "title", text: "Temperature Chart - June 1st, 2023" },
+            { type: "legend", brush: [0], align: "start", filter: true },
+            { type: "legend", brush: [1], align: "center", filter: true },
+            { type: "zoom", axis: [0], integrate: true }
+        ]
+    });
+});
+    window.addEventListener("resize", function () {
+            c.resize();
+    });
+```
+
+<img width="1322" alt="데모코드" src="https://github.com/CaMaGuee/Charting-JUI/assets/89383380/b09fec2d-3baf-4dc7-bd86-7a83d41cfb3d">
+
+
