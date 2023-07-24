@@ -150,8 +150,6 @@ FEAT : 새로운 기능의 추가
 | 작성자     | 김찬솔 학생 연구원                |
 | 작성 날짜  | 2023.07.07                      |
 
-#### 우선순위
-
 | 아이템 | 세부사항 |
 | ---- | ----- |
 | 1    | 오픈소스 사용 매뉴얼 작성 |
@@ -169,3 +167,24 @@ FEAT : 새로운 기능의 추가
 |      | 사용자의 휴대전화 번호를 ID 및 KEY로 활용하여 SHA-256 Hashing 기술을 이용하여 보안을 하며 해당 키를 이용하여 사용자 인증을 할 것 |
 |      | https://ko.wikipedia.org/wiki/SHA |
 | 7    | 웹 및 안드로이드 어플리케이션에서 동일한 UI · UX를 구현 |
+
+## 라) 차트 모듈 개선 계획 - 오픈소스 로딩
+
+ ### (가) 리소스 로드하기
+  ○ JUI 라이브러리는 사용자가 이중 패키지 파일을 로드 하면 된다.
+   테마 파일을 사용할 수 있으며 테마를 쉽게 만들 수 있는 추가 도구를 
+   사용할 수 있다.
+
+  ○ 해당 코드를 추가하여 JUI 라이브러리에서 필요한 스타일 및 스크립트 
+   파일을 로드 한다.
+
+`스타일 및 스크립트 파일을 로드하는 코드`
+
+```html
+<!-- 기본 스타일 컴포넌트 -->
+<link rel="stylesheet" href="/jui/dist/ui.min.css" />
+<link rel="stylesheet" href="/jui/dist/ui-jennifer.min.css" />
+
+<!-- 그리드 스타일 컴포넌트 -->
+<link rel="stylesheet" href="/jui-grid/dist/grid.min.css" />
+<link rel="stylesheet" href="/jui-grid/dist/grid-jennifer.min.css" />
