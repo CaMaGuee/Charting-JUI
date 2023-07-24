@@ -1067,4 +1067,153 @@ graph.ready(["chart.builder", "util.base"], function (builder, _) {
 
     - 즉, 차트에 띄운 데이터의 시간 값과 현재 시간 값의 오차는 최대 61 초, 최소 19 초로 한다.
 
+---
 
+### 가) Module화 한 실 사용 예제 코드
+
+1.1 소스 코드 : test_chart.html
+ - 모듈화시킨 자바스크립트 파일을 호출시킨 html 예제 코드
+
+`모듈화시킨 자바스크립트 파일을 호출시킨 html 예제 코드`
+```js
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="charset=utf-8;" />
+    <script src="/TEST_HTML/jui-chart-master/dist/jui-chart.js"></script>
+</head>
+
+<body>
+    <div id="chart"></div>
+    <script src="jui-chart-master/dist/farmTempData.json"       type="text/javascript"></script>
+
+    <script src="jui-chart-master/dist/jui-chart-data-parsing.js"       type="module"></script>
+
+    <script src="jui-chart-master/dist/jui-chart-print.js" type="module"></script>
+</body>
+
+</html>
+```
+---
+
+1.2 소스 코드 : farmTempData.json
+ - 2023년 07월 17일 양복기농원에서 실제로 측정된 온도값을 JSON 파일로 
+ 데이터화 시킨 파일
+
+`양복기농원에서 측정된 온도값을 JSON 파일로 데이터화한 파일`
+```js
+Temperaturedata = '[
+    {
+        "plkey": 1,
+        "plname": "양복기농원",
+        "install_date": "2022/12/08 22:49:05",
+        "temperature": [
+            { "date": "2023/07/17 00:00:08", "temperature1": "20.75" },
+            { "date": "2023/07/17 00:09:31", "temperature1": "21.13" },
+            { "date": "2023/07/17 00:18:43", "temperature1": "20.88" },
+            { "date": "2023/07/17 00:28:26", "temperature1": "20.81" },
+            { "date": "2023/07/17 00:37:48", "temperature1": "20.94" },
+/* ------ 생략 ------ */
+            { "date": "2023/07/17 23:43:22", "temperature1": "21.31" },
+            { "date": "2023/07/17 23:52:44", "temperature1": "21.31" }
+        ]
+    }
+]'
+```
+
+---
+
+1.3 소스 코드 : jui-chart-data-parsing.js
+ - JSON.parse() 하여 사용 가능한 데이터로 반환
+
+`데이터를 출력하기 위한 Parsing 모듈`
+```js
+const temperatureData = JSON.parse(Temperaturedata)[0].temperature;
+
+var data = temperatureData.map((entry) => {
+  return {
+    date: new Date(entry.date),
+    temperature1: parseFloat(entry.temperature1),
+    temperature2: Math.floor(Math.random() * 30),
+  };
+});
+
+console.log(temperatureData);
+export default data;
+```
+---
+
+1.4 소스 코드 : jui-chart-print.js
+ - 24시간 동안 측정한 온도 데이터를 출력하는 예제 코드
+
+`도표의 길이를 24시간으로 제한한 코드`
+```
+import data from './jui-chart-data-parsing.js';
+var year = data[0].date.getFullYear();
+var month = ("0" + (data[0].date.getMonth() + 1)).slice(-2);
+// 월은 0부터 시작해서 1을 더해주고, 2자리 문자열로 만들어줍니다.
+var day = ("0" + data[0].date.getDate()).slice(-2);
+var dateString = `${year}/${month}/${day}`;
+var SDATE = dateString + " 00:00:00";
+var EDATE = dateString + " 24:00:00";
+graph.ready(["chart.builder", "util.base"], function (builder, _) {
+    c = builder("#chart", {
+        height: 300,
+        padding: {
+            right: 120
+        },
+        axis: [
+            {
+                x: {
+                    type: "date",
+                    domain: [new Date(SDATE), new Date(EDATE)],
+                    interval: 1000 * 60 * 60 * 6, // 1시간 간격으로 눈금 표시
+                    format: "HH:mm",
+                    key: "date",
+                    line: true
+                },
+                y: {
+                    type: "range",
+                    domain: [-20, 50], // Y축의 범위를 설정합니다.
+                    step: 7,
+                    line: true,
+                    orient: "left"
+                },
+                data: data
+            }
+        ],
+
+        brush: [
+            { type: "line", target: "temperature1", axis: 0, colors: ["#90ed7d"],              symbol: "curve" },
+            { type: "line", target: "temperature2", axis: 0, colors: ["#999999"],              symbol: "curve" }
+        ],
+        widget: [
+            { type: "title", text: "Temperature Chart - " + dateString },
+            { type: "legend", brush: [0], align: "start", filter: true },
+            { type: "legend", brush: [1], align: "center", filter: true },
+            { type: "zoom", axis: [0], integrate: true }
+        ]
+});
+    window.addEventListener("resize", function () {
+        c.resize();
+    });
+});
+```
+
+ * 표의 길이를 하루로 제한한다
+
+`도표의 길이를 24시간으로 제한한 코드`
+```
+var year = data[0].date.getFullYear();
+var month = ("0" + (data[0].date.getMonth() + 1)).slice(-2); // 월은 0부터 시작해서 1을 더해주고, 2자리 문자열로 만들어줍니다.
+var day = ("0" + data[0].date.getDate()).slice(-2);
+var dateString = `${year}/${month}/${day}`;
+
+var SDATE = dateString + " 00:00:00";
+var EDATE = dateString + " 24:00:00";
+```
+
+`Module화 한 실 사용 예제 코드 실행 화면`
+
+<img width="1261" alt="24시간 코드" src="https://github.com/CaMaGuee/Charting-JUI/assets/89383380/77417d65-d55d-4046-8503-d6f78b99d6e8">
