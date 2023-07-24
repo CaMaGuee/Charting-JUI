@@ -80,7 +80,7 @@ FEAT : 새로운 기능의 추가
 
 #### 세부 사항
 
-가. 위험 분석
+위험 분석
 1) 실시간 동적 데이터와 현재 시간 사이에 일정 오차 시간이 발생할 
   경우, 이는 데이터베이스로부터 특정 데이터 요청 시 딜레이, 인터넷 
   장애, 데이터베이스 장애 등으로 인한 문제로 발생할 수 있다.
@@ -188,3 +188,73 @@ FEAT : 새로운 기능의 추가
 <!-- 그리드 스타일 컴포넌트 -->
 <link rel="stylesheet" href="/jui-grid/dist/grid.min.css" />
 <link rel="stylesheet" href="/jui-grid/dist/grid-jennifer.min.css" />
+```
+
+ ○ 그 다음 마크업에 JUI 클래스를 정의해 준다.
+
+`jui 클래스를 정의하는 코드`
+```html
+<body class="jui">
+    ...
+</body>
+```
+
+`jui-core, jui-grid 파일을 로드하는 코드`
+```html
+<!-- 필수 스크립트 파일 -->
+<script src="jquery.min.js"></script>
+<script src="/jui-core/dist/core.min.js"></script>
+
+<!-- 기본 스크립트 컴포넌트 -->
+<script src="/jui/dist/ui.min.js"></script>
+
+<!-- 그리드 스크립트 컴포넌트 -->
+<script src="/jui-grid/dist/grid.min.js"></script>
+```
+
+○ 차트를 사용할 땐 다음과 같은 스크립트 파일을 로드한다.
+
+`jui-chart 파일을 로드하는 코드`
+```html
+<script src="/jui-core/dist/core.min.js"></script>
+<script src="/jui-chart/dist/chart.min.js"></script>
+```
+
+## 나) 명령으로 설치하기
+○ JUI 라이브러리 설치는 npm이나 bower와 같은 패키지 매니저를 사용할 수 있다.
+
+`jui 라이브러리를 설치하는 npm 명령어`
+```objective-c
+npm install jui
+npm install jui-core
+npm install jui-grid
+npm install jui-chart
+```
+
+
+ ### (가) 프로젝트 빌드 하기
+ ○ 프로젝트 빌드를 위해, 빌드 도구인 Grunt 모듈을 설치해야 한다.
+ ○ Grunt를 설치하려면 NodeJs를 먼저 설치해야 한다.
+ ○ 그 다음 Terminal에서 아래와 같은 명령어를 실행한다.
+
+`프로젝트를 빌드 하는 npm 명령어`
+```objective-c
+npm install grunt-cli –g
+cd jui
+npm install
+grunt
+```
+
+○ 빌드 및 테스트 명령은 다음과 같이 각 기능별로 수행할 수 있다.
+
+○ grunt.js 명령은 .js 파일에서 병합하고 최소화하며, grunt-test 명령어는 
+  컴포넌트 테스트를 실행한다. grunt css 명령어는 마찬가지로 .less 파일을 
+  css로 변환하고 병합한다.
+
+`grunt 명령어`
+```objective-c
+grunt js
+grunt css
+grunt test
+표  grunt 명령어
+```
