@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="charset=utf-8;" />
+    <script src="/jui-chart-master/dist/jui-chart.js"></script>
+</head>
+
+<body>
+    <div id="chart"></div>
+    <script>
+        // 1시간 간격으로 온도 데이터를 포함한 배열
+        var data = [
+            { date: new Date("2023/06/01 00:00:00"), temperature1: 22, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 01:00:00"), temperature1: 19, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 02:00:00"), temperature1: 17, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 03:00:00"), temperature1: 15, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 04:00:00"), temperature1: 14, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 05:00:00"), temperature1: 16, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 06:00:00"), temperature1: 20, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 07:00:00"), temperature1: 23, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 08:00:00"), temperature1: 25, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 09:00:00"), temperature1: 26, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 10:00:00"), temperature1: 24, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 11:00:00"), temperature1: 22, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 12:00:00"), temperature1: 20, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 13:00:00"), temperature1: 21, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 14:00:00"), temperature1: 22, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 15:00:00"), temperature1: 24, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 16:00:00"), temperature1: 26, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 17:00:00"), temperature1: 27, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 18:00:00"), temperature1: 27, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 19:00:00"), temperature1: 25, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 20:00:00"), temperature1: 23, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 21:00:00"), temperature1: 21, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 22:00:00"), temperature1: 20, temperature2: Math.floor(Math.random() * 30) },
+            { date: new Date("2023/06/01 23:00:00"), temperature1: 19, temperature2: Math.floor(Math.random() * 30) }
+        ];
+
+var year  = data[0].date.getFullYear();
+var month = ("0" + (data[0].date.getMonth() + 1)).slice(-2); // 월은 0부터 시작해서 1을 더해주고, 2자리 문자열로 만들어줍니다.
+var day   = ("0" + data[0].date.getDate()).slice(-2);
+var dateString = `${year}/${month}/${day}`;
+
+var SDATE = dateString + " 00:00:00";
+var EDATE = dateString + " 24:00:00";
+
+        graph.ready(["chart.builder", "util.base"], function (builder, _) {
+            c = builder("#chart", {
+                height: 300,
+                padding: {
+                    right: 120
+                },
+                axis: [
+                    {
+                        x: {
+                            type: "date",
+                            domain: [new Date(SDATE), new Date(EDATE)], // X축의 범위를 설정합니다.
+                            interval: 1000 * 60 * 60 * 6, // 1시간 간격으로 눈금 표시
+                            format: "HH:mm", // 눈금의 레이블을 시간-분 형식으로 표시하도록 설정합니다.
+                            key: "date",
+                            line: true
+                        },
+                        y: {
+                            type: "range",
+                            domain: [-40, 70], // Y축의 범위를 설정합니다.
+                            step: 11,
+                            line: true,
+                            orient: "left"
+                        },
+                        data: data
+                    }
+                ],
+                brush: [
+                    { type: "line", target: "temperature1", axis: 0, colors: ["#90ed7d"], symbol: "curve" },
+                    { type: "line", target: "temperature2", axis: 0, colors: ["#999999"], symbol: "curve" }
+                ],
+                widget: [
+                    { type: "title", text: "Temperature Chart - " + dateString },
+                    { type: "legend", brush: [0], align: "start", filter: true },
+                    { type: "legend", brush: [1], align: "center", filter: true },
+                    { type: "zoom", axis: [0], integrate: true }
+                ]
+            });
+            window.addEventListener("resize", function () {
+                c.resize();
+            });
+        });
+    </script>
+</body>
+
+</html>
