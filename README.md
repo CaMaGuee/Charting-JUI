@@ -1,6 +1,6 @@
 # Charting-JUI
 
-이 프로젝트는 [https://github.com/juijs/jui-chart.git]를 사용하여 구현되었습니다. 해당 오픈 소스에 기여한 모든 개발자분들께 감사드립니다.
+이 프로젝트는 [ https://github.com/juijs/jui-chart.git ]를 사용하여 구현되었습니다. 해당 오픈 소스에 기여한 모든 개발자분들께 감사드립니다.
 
 * FEAT : 새로운 기능의 추가
 * FIX: 버그 수정
