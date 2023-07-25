@@ -1112,7 +1112,7 @@ graph.ready(["chart.builder", "util.base"], function (builder, _) {
 Temperaturedata = '[
     {
         "plkey": 1,
-        "plname": "양복기농원",
+        "plname": "OOO농원",
         "install_date": "2022/12/08 22:49:05",
         "temperature": [
             { "date": "2023/07/17 00:00:08", "temperature1": "20.75" },
